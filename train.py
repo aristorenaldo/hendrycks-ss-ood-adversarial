@@ -11,7 +11,7 @@ import torchvision.datasets as dset
 import torch.nn.functional as F
 from tqdm import tqdm
 from models.allconv import AllConvNet
-from models.wrn_prime import WideResNet
+from models.wrn import WideResNet
 import attacks
 
 parser = argparse.ArgumentParser(description='Trains a CIFAR Classifier',
