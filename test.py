@@ -148,6 +148,6 @@ def evaluate(adv=True):
 
 
 loss, acc = evaluate(adv=False)
-logger.info('\nNormal Test Loss: {:.4f} | Normal Test Acc: {:.4f}'.format(loss, acc))
+logger.info('Normal Test Loss: {:.4f} | Normal Test Acc: {:.4f}'.format(loss, acc))
 loss, acc = evaluate(adv=True)
-logger.info('\nAdv Test Loss: {:.4f} | Adv Test Acc: {:.4f}'.format(loss, acc))
+logger.info('Adv Test Loss: {:.4f} | Adv Test Acc: {:.4f}'.format(loss, acc))
