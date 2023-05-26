@@ -1,0 +1,13 @@
+# optimization
+
+# WRN config
+
+# checkpoints
+save_name: adp-gssl-1
+
+# PGD
+
+#G-SSL
+
+# gpu
+gpu: 1

@@ -9,7 +9,6 @@ import torch.backends.cudnn as cudnn
 import torchvision.transforms as trn
 import torchvision.datasets as dset
 import torch.nn.functional as F
-from tqdm import tqdm
 from models.allconv import AllConvNet
 from models.wrn import WideResNet
 import attacks
@@ -55,12 +54,12 @@ train_transform = trn.Compose([trn.RandomHorizontalFlip(), trn.RandomCrop(32, pa
 test_transform = trn.Compose([trn.ToTensor()])
 
 if args.dataset == 'cifar10':
-    train_data = dset.CIFAR10('~/datasets/cifarpy', train=True, transform=train_transform)
-    test_data = dset.CIFAR10('~/datasets/cifarpy', train=False, transform=test_transform)
+    train_data = dset.CIFAR10('./data', train=True, transform=train_transform, download=True)
+    test_data = dset.CIFAR10('./data', train=False, transform=test_transform, download=True)
     num_classes = 10
 else:
-    train_data = dset.CIFAR100('~/datasets/cifarpy', train=True, transform=train_transform)
-    test_data = dset.CIFAR100('~/datasets/cifarpy', train=False, transform=test_transform)
+    train_data = dset.CIFAR100('./data', train=True, transform=train_transform, download=True)
+    test_data = dset.CIFAR100('./data', train=False, transform=test_transform, download=True)
     num_classes = 100
 
 
@@ -150,7 +149,10 @@ def train():
         scheduler.step()
         optimizer.zero_grad()
         loss = F.cross_entropy(logits[:curr_batch_size], by)
-        loss += 0.5 * F.cross_entropy(net.module.rot_pred(pen[curr_batch_size:]), by_prime)
+        if hasattr(net, 'module'):
+            loss += 0.5 * F.cross_entropy(net.module.rot_pred(pen[curr_batch_size:]), by_prime)
+        else:
+            loss += 0.5 * F.cross_entropy(net.rot_pred(pen[curr_batch_size:]), by_prime)
         loss.backward()
         optimizer.step()
 

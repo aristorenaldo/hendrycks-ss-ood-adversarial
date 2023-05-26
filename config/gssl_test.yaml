@@ -1,0 +1,9 @@
+# optimization
+epochs: 2
+batch_size: 64
+
+# checkpoints
+save_name: test
+
+# gpu
+gpu: 0

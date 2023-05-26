@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
-
+from models.moe import Moe1, Moe1flip, Moe1sc, Lorot, Nomoe
 
 def tensor_clamp(x, a_min, a_max):
     """
@@ -45,7 +45,7 @@ class PGD(nn.Module):
         self.step_size = step_size
         self.attack_rotations = attack_rotations
 
-    def forward(self, model, bx, by, by_prime, curr_batch_size):
+    def __forward(self, model, bx, by, by_prime, curr_batch_size):
         """
         :param model: the classifier's forward method
         :param bx: batch of images
@@ -61,7 +61,10 @@ class PGD(nn.Module):
                 logits, pen = model(adv_bx * 2 - 1)
                 loss = F.cross_entropy(logits[:curr_batch_size], by, reduction='sum')
                 if self.attack_rotations:
-                    loss += F.cross_entropy(model.module.rot_pred(pen[curr_batch_size:]), by_prime, reduction='sum') / 8.
+                    if hasattr(model, 'module'):
+                        loss += F.cross_entropy(model.module.rot_pred(pen[curr_batch_size:]), by_prime, reduction='sum') / 8.
+                    else:
+                        loss += F.cross_entropy(model.rot_pred(pen[curr_batch_size:]), by_prime, reduction='sum') / 8.
             grad = torch.autograd.grad(loss, adv_bx, only_inputs=True)[0]
 
             adv_bx = adv_bx.detach() + self.step_size * torch.sign(grad.detach())
@@ -69,6 +72,50 @@ class PGD(nn.Module):
             adv_bx = torch.min(torch.max(adv_bx, bx - self.epsilon), bx + self.epsilon).clamp(0, 1)
 
         return adv_bx
+    
+    def __forward_gssl(self, model, bx, by, ssl_label):
+        adv_bx = bx.detach()
+        adv_bx += torch.zeros_like(adv_bx).uniform_(-self.epsilon, self.epsilon)
+
+        for i in range(self.num_steps):
+            adv_bx.requires_grad_()
+            with torch.enable_grad():
+                ssl_loss = 0
+                if ssl_label is None:
+                    logits= model(adv_bx * 2 - 1, ssl_task=False)
+                elif isinstance(model, Moe1):
+                    logits, ssl1, ssl2, ssl3, gate_output = model(adv_bx * 2 - 1)
+                    gate = F.softmax(gate_output, dim=1).mean(dim=0)
+                    ssl_loss = F.cross_entropy(ssl1, ssl_label[0], reduction='sum')*gate[0].item()
+                    ssl_loss += F.cross_entropy(ssl2, ssl_label[1], reduction='sum')*gate[1].item()
+                    ssl_loss += F.cross_entropy(ssl3, ssl_label[2], reduction='sum')*gate[2].item()
+                elif isinstance(model, (Moe1flip, Moe1sc)):
+                    logits, ssl1, ssl2, gate_output = model(adv_bx * 2 - 1)
+                    gate = F.softmax(gate_output, dim=1).mean(dim=0)
+                    ssl_loss = F.cross_entropy(ssl1, ssl_label[0], reduction='sum')*gate[0].item()
+                    ssl_loss += F.cross_entropy(ssl2, ssl_label[1], reduction='sum')*gate[1].item()
+                elif isinstance(model, Nomoe):
+                    logits, ssl1, ssl2, ssl3= model(adv_bx * 2 - 1)
+                    ssl_loss = F.cross_entropy(ssl1, ssl_label[0], reduction='sum')
+                    ssl_loss += F.cross_entropy(ssl2, ssl_label[1], reduction='sum')
+                    ssl_loss += F.cross_entropy(ssl3, ssl_label[2], reduction='sum')
+                elif isinstance(model, Lorot):
+                    logits, ssl1 = model(adv_bx * 2 - 1)
+                    ssl_loss = F.cross_entropy(ssl1, ssl_label, reduction='sum')
+                loss = F.cross_entropy(logits, by, reduction='sum') + ssl_loss/8
+            grad = torch.autograd.grad(loss, adv_bx, only_inputs=True)[0]
+
+            adv_bx = adv_bx.detach() + self.step_size * torch.sign(grad.detach())
+
+            adv_bx = torch.min(torch.max(adv_bx, bx - self.epsilon), bx + self.epsilon).clamp(0, 1)
+
+        return adv_bx
+
+    def forward(self, model, bx, by, ssl_label, by_prime, curr_batch_size):
+        if self.attack_rotations or by_prime is not None :
+            return self.__forward(model, bx, by, by_prime, curr_batch_size)
+        return self.__forward_gssl(model, bx, by, ssl_label)
+        
 
 class PGD_l2(nn.Module):
     def __init__(self, epsilon, num_steps, step_size):

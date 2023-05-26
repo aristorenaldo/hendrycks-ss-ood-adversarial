@@ -1,0 +1,40 @@
+experiment: 'Gated SSL Adversarial Pertubation'
+
+dataset: cifar10 # cifar100
+data_dir: ./data
+arch: Moe1 #Moe1 Nomoe Lorot Moe1flip Moe1sc
+
+# optimization
+epochs: 100
+learning_rate: 0.1
+batch_size: 128
+test_bs: 200
+momentum: 0.9
+decay: 0.0005
+
+# WRN config
+layers: 40
+widen_factor: 2
+droprate: 0
+
+# checkpoints
+tb_dir: ./tblog
+save: ./snapshots
+save_name: adp-gssl
+load: null
+overwrite: False
+test: False
+save_freq: 10
+
+# PGD
+epsilon: !!python/object/apply:eval [8./255]
+num_steps: 10
+step_size: !!python/object/apply:eval [2./225]
+
+#G-SSL
+ssl_ratio: 0.1
+
+# gpu
+gpu: 1 # 0
+ngpu: 1
+workers: 4
