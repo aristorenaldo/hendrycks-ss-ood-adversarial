@@ -227,7 +227,7 @@ def main(args):
             best_val_acc = val_state['val_accuracy']
             logger.info(f"Epoch: {epoch:3d} Best Val Acc: {100*best_val_acc:.2f}%")
             save_checkpoint(net, epoch, optimizer, scheduler, 'best_model.pt', args.save, logger)
-        elif epoch % args.save_freq == 0 or epoch == args.epochs:
+        elif (epoch+1) % args.save_freq == 0 or (epoch+1) == args.epochs:
             logger.info(f'Save Checkpoint at epoch {epoch:3d}')
             save_checkpoint(net, epoch, optimizer, scheduler, 'lastest_model.pt', args.save, logger)
             
