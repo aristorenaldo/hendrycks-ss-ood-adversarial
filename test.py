@@ -90,8 +90,8 @@ net = moe.__dict__[args.arch](depth=args.layers,
                                     num_classes=args.num_classes)
 logger.info(f'model_arch: {args.arch}')
 
-if args.ngpu > 0:
-    net = torch.nn.DataParallel(net, device_ids=list(range(args.ngpu)))
+# if args.ngpu > 0:
+#     net = torch.nn.DataParallel(net, device_ids=list(range(args.ngpu)))
 
 # Restore model if desired
 if args.load is not None:
