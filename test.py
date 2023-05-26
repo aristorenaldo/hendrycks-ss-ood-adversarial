@@ -18,7 +18,7 @@ parser.add_argument('--dataset', type=str, default='cifar10', choices=['cifar10'
                     help='Choose between CIFAR-10, CIFAR-100.')
 parser.add_argument('--data_dir', type=str, default='./data', help='dataset dir path')
 parser.add_argument('--test_bs', type=int, default=200)
-parser.add_argument('--arch', type=str, default='wrn',
+parser.add_argument('--arch', type=str, default='Moe1',
                     choices=['Moe1', 'Lorot', 'Nomoe', 'Moe1flip', 'Moe1sc'], help='Choose architecture.')
 # PGD
 parser.add_argument('--pgd_type', default=1, type=int, choices=[1,2], 
@@ -65,11 +65,11 @@ test_transform = trn.Compose([trn.ToTensor()])
 
 if args.dataset == 'cifar10':
     # train_data = dset.CIFAR10('/share/data/vision-greg/cifarpy', train=True, transform=train_transform)
-    test_data = dset.CIFAR10('/share/data/vision-greg/cifarpy', train=False, transform=test_transform)
+    test_data = dset.CIFAR10(args.data_dir, train=False, transform=test_transform)
     args.num_classes = 10
 else:
     # train_data = dset.CIFAR100('/share/data/vision-greg/cifarpy', train=True, transform=train_transform)
-    test_data = dset.CIFAR100('/share/data/vision-greg/cifarpy', train=False, transform=test_transform)
+    test_data = dset.CIFAR100(args.data_dir, train=False, transform=test_transform)
     args.num_classes = 100
 
 
@@ -95,7 +95,7 @@ if args.ngpu > 0:
 
 # Restore model if desired
 if args.load is not None:
-    checkpoint = args.load(args.load)
+    checkpoint = torch.load(args.load)
     net.load_state_dict(checkpoint['model'])
     logger.info(f"Check Point Loading: model is LOADED")
 
@@ -129,7 +129,7 @@ def evaluate(adv=True):
 
         count += by.size(0)
 
-        adv_bx = adversary(net, bx, by, None, None) if adv else bx
+        adv_bx = adversary(net, bx, by, None, None, None) if adv else bx
         with torch.no_grad():
             logits = net(adv_bx * 2 - 1)
 
