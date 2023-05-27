@@ -154,6 +154,16 @@ def main(args):
     start_epoch = 0
     logger.info(f'model_arch: {args.arch}')
 
+    if args.ngpu > 1:
+        net = torch.nn.DataParallel(net, device_ids=list(range(args.ngpu)))
+    if args.ngpu > 0:
+        if args.gpu is not None:
+            logger.warning('You have chosen a specific GPU. This will completely '
+                      'disable data parallelism.')
+            logger.warning(f"USE GPU: {args.gpu} for training")
+        net.cuda(args.gpu)
+        torch.cuda.manual_seed(1)
+
     optimizer = torch.optim.SGD(
         net.parameters(), args.learning_rate, momentum=args.momentum,
         weight_decay=args.decay, nesterov=True)
@@ -180,15 +190,7 @@ def main(args):
                 scheduler.load_state_dict(checkpoint[key])
             logger.info(f"Check Point Loading: {key} is LOADED")
 
-    if args.ngpu > 1:
-        net = torch.nn.DataParallel(net, device_ids=list(range(args.ngpu)))
-    if args.ngpu > 0:
-        if args.gpu is not None:
-            logger.warning('You have chosen a specific GPU. This will completely '
-                      'disable data parallelism.')
-            logger.warning(f"USE GPU: {args.gpu} for training")
-        net.cuda(args.gpu)
-        torch.cuda.manual_seed(1)
+    
     
     cudnn.benchmark = True  # fire on all cylinders
     adversary = attacks.PGD(epsilon=args.epsilon, num_steps=args.num_steps, step_size=args.step_size, attack_rotations=False).cuda(args.gpu)
