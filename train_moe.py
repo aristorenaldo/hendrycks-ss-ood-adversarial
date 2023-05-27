@@ -145,7 +145,7 @@ def main(args):
     test_loader = torch.utils.data.DataLoader(
         test_data, batch_size=args.test_bs, shuffle=False,
         num_workers=args.workers, pin_memory=True)
-    
+    torch.cuda.set_device(args.gpu)
     # create model
     net = moe.__dict__[args.arch](depth=args.layers, 
                                     widen_factor=args.widen_factor,
