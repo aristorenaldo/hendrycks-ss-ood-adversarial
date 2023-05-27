@@ -168,7 +168,7 @@ def main(args):
     
     # resume checkpoint
     if args.load is not None:
-        checkpoint = torch.load(args.load)
+        checkpoint = torch.load(args.load, map_location=torch.device('cuda', args.gpu))
         for key in checkpoint.keys():
             if key == 'model':
                 net.load_state_dict(checkpoint[key])
