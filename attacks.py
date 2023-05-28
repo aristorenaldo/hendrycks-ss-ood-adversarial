@@ -102,7 +102,7 @@ class PGD(nn.Module):
                 elif isinstance(model, Lorot):
                     logits, ssl1 = model(adv_bx * 2 - 1)
                     ssl_loss = F.cross_entropy(ssl1, ssl_label, reduction='sum')
-                loss = F.cross_entropy(logits, by, reduction='sum') + ssl_loss/8
+                loss = F.cross_entropy(logits, by, reduction='sum') + ssl_loss * 0.1
             grad = torch.autograd.grad(loss, adv_bx, only_inputs=True)[0]
 
             adv_bx = adv_bx.detach() + self.step_size * torch.sign(grad.detach())

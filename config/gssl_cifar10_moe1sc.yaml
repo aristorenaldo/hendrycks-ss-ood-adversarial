@@ -1,6 +1,6 @@
 arch: Moe1sc
 # optimization
-epochs: 100
+
 # WRN config
 
 # checkpoints

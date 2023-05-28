@@ -1,6 +1,6 @@
 arch: Lorot
 # optimization
-epochs: 100
+
 # WRN config
 
 # checkpoints

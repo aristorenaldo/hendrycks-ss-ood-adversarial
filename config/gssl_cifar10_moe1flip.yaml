@@ -1,6 +1,6 @@
 arch: Moe1flip
 # optimization
-epochs: 100
+
 # WRN config
 
 # checkpoints

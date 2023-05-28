@@ -5,7 +5,7 @@ data_dir: ./data
 arch: Moe1 #Moe1 Nomoe Lorot Moe1flip Moe1sc
 
 # optimization
-epochs: 100
+epochs: 200
 learning_rate: 0.1
 batch_size: 128
 test_bs: 200

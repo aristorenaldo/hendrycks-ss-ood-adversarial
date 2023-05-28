@@ -52,6 +52,8 @@ elif args.pgd_type == 2:
 else:
     raise Exception('Please choose PGD type 1 or 2, see help')
 
+logger.info(f'Argument: {args}')
+
 torch.manual_seed(1)
 np.random.seed(1)
 
@@ -85,9 +87,9 @@ test_loader = torch.utils.data.DataLoader(
 # else:
 #     net = WideResNet(args.layers, num_classes, args.widen_factor, dropRate=args.droprate)
 net = moe.__dict__[args.arch](depth=args.layers, 
-                                    widen_factor=args.widen_factor,
-                                    drop_rate=args.droprate,
-                                    num_classes=args.num_classes)
+                              widen_factor=args.widen_factor,
+                              drop_rate=args.droprate,
+                              num_classes=args.num_classes)
 logger.info(f'model_arch: {args.arch}')
 
 # if args.ngpu > 0:
@@ -104,9 +106,7 @@ if args.load is not None:
 
 if args.ngpu > 0:
     if args.gpu is not None:
-        logger.warning('You have chosen a specific GPU. This will completely '
-                    'disable data parallelism.')
-        logger.warning(f"USE GPU: {args.gpu} for training")
+        logger.warning(f"USE GPU: {args.gpu} for testing")
     net.cuda(args.gpu)
     torch.cuda.manual_seed(1)
 
