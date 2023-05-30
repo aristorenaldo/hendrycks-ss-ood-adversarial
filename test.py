@@ -100,6 +100,7 @@ if args.load is not None:
     checkpoint = torch.load(args.load)
     net.load_state_dict(checkpoint['model'])
     logger.info(f"Check Point Loading: model is LOADED")
+    logger.info(f'Epoch: {checkpoint["epoch"]}')
 
 #if args.ngpu > 1:
 #    net = torch.nn.DataParallel(net, device_ids=list(range(args.ngpu)))
